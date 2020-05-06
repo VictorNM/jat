@@ -1,4 +1,4 @@
-module github.com/victornm/japitest
+module github.com/victornm/jat
 
 go 1.13
 

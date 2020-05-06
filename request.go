@@ -1,4 +1,4 @@
-package japitest
+package jat
 
 import (
 	"bytes"

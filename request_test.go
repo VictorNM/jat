@@ -1,11 +1,11 @@
-package japitest_test
+package jat_test
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"github.com/victornm/japitest"
+	"github.com/victornm/jat"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -22,7 +22,7 @@ func TestMethod(t *testing.T) {
 	}{
 		{
 			f: func() *http.Request {
-				return japitest.WrapGET("/users").Unwrap()
+				return jat.WrapGET("/users").Unwrap()
 			},
 
 			wantedMethod: http.MethodGet,
@@ -31,7 +31,7 @@ func TestMethod(t *testing.T) {
 
 		{
 			f: func() *http.Request {
-				return japitest.WrapPOST("/users", nil).Unwrap()
+				return jat.WrapPOST("/users", nil).Unwrap()
 			},
 
 			wantedMethod: http.MethodPost,
@@ -40,7 +40,7 @@ func TestMethod(t *testing.T) {
 
 		{
 			f: func() *http.Request {
-				return japitest.WrapPUT("/users", nil).Unwrap()
+				return jat.WrapPUT("/users", nil).Unwrap()
 			},
 
 			wantedMethod: http.MethodPut,
@@ -49,7 +49,7 @@ func TestMethod(t *testing.T) {
 
 		{
 			f: func() *http.Request {
-				return japitest.WrapPATCH("/users", nil).Unwrap()
+				return jat.WrapPATCH("/users", nil).Unwrap()
 			},
 
 			wantedMethod: http.MethodPatch,
@@ -58,7 +58,7 @@ func TestMethod(t *testing.T) {
 
 		{
 			f: func() *http.Request {
-				return japitest.WrapDELETE("/users", nil).Unwrap()
+				return jat.WrapDELETE("/users", nil).Unwrap()
 			},
 
 			wantedMethod: http.MethodDelete,
@@ -79,12 +79,12 @@ func TestMethod(t *testing.T) {
 
 func TestBodyJSON(t *testing.T) {
 	tests := map[string]struct {
-		f func(wrapper *japitest.RequestWrapper)
+		f func(wrapper *jat.RequestWrapper)
 
 		wanted string
 	}{
 		"body from map": {
-			f: func(wrapper *japitest.RequestWrapper) {
+			f: func(wrapper *jat.RequestWrapper) {
 				wrapper.WithBody(map[string]string{
 					"email": "foo@bar.com",
 				})
@@ -94,7 +94,7 @@ func TestBodyJSON(t *testing.T) {
 		},
 
 		"body from io.Reader": {
-			f: func(wrapper *japitest.RequestWrapper) {
+			f: func(wrapper *jat.RequestWrapper) {
 				m := map[string]string{
 					"email": "foo@bar.com",
 				}
@@ -108,7 +108,7 @@ func TestBodyJSON(t *testing.T) {
 		},
 
 		"body from struct": {
-			f: func(wrapper *japitest.RequestWrapper) {
+			f: func(wrapper *jat.RequestWrapper) {
 				body := struct {
 					Email string `json:"email"`
 				}{
@@ -122,7 +122,7 @@ func TestBodyJSON(t *testing.T) {
 		},
 
 		"body from array": {
-			f: func(wrapper *japitest.RequestWrapper) {
+			f: func(wrapper *jat.RequestWrapper) {
 				body := []string{"hello", "world"}
 
 				wrapper.WithBody(body)
@@ -134,7 +134,7 @@ func TestBodyJSON(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			wrapper := japitest.WrapPOST("/", nil)
+			wrapper := jat.WrapPOST("/", nil)
 
 			test.f(wrapper)
 			req := wrapper.Unwrap()
@@ -151,7 +151,7 @@ func TestHeader(t *testing.T) {
 	target := "/api/ping"
 
 	t.Run("add header", func(t *testing.T) {
-		req := japitest.WrapGET(target).
+		req := jat.WrapGET(target).
 			AddHeader("Host", "localhost:3000").
 			Unwrap()
 
@@ -165,7 +165,7 @@ func TestHeader(t *testing.T) {
 	})
 
 	t.Run("add header twice", func(t *testing.T) {
-		req := japitest.WrapGET(target).
+		req := jat.WrapGET(target).
 			AddHeader("Host", "localhost:3000").
 			AddHeader("Host", "localhost:8080").
 			Unwrap()
@@ -180,7 +180,7 @@ func TestHeader(t *testing.T) {
 	})
 
 	t.Run("set header twice", func(t *testing.T) {
-		req := japitest.WrapGET(target).
+		req := jat.WrapGET(target).
 			AddHeader("Host", "localhost:3000").
 			AddHeader("Host", "localhost:8080").
 			SetHeader("Host", "localhost:5432").
@@ -197,7 +197,7 @@ func TestHeader(t *testing.T) {
 
 	t.Run("set basic auth", func(t *testing.T) {
 		username, password := "foo", "bar"
-		req := japitest.WrapGET(target).
+		req := jat.WrapGET(target).
 			SetBasicAuth(username, password).
 			Unwrap()
 
@@ -210,7 +210,7 @@ func TestHeader(t *testing.T) {
 
 	t.Run("add bearer auth", func(t *testing.T) {
 		token := "6eTUFP4HNhvvIwz5nNiL"
-		req := japitest.WrapGET(target).
+		req := jat.WrapGET(target).
 			SetBearerAuth(token).
 			Unwrap()
 
@@ -221,7 +221,7 @@ func TestHeader(t *testing.T) {
 
 	t.Run("add cookie", func(t *testing.T) {
 		username, password := "foo", "bar"
-		req := japitest.WrapGET(target).
+		req := jat.WrapGET(target).
 			AddCookie(&http.Cookie{Name: username, Value: password}).
 			Unwrap()
 
@@ -236,13 +236,13 @@ func TestQuery(t *testing.T) {
 	tests := map[string]struct {
 		initURI string
 
-		f func(wrapper *japitest.RequestWrapper)
+		f func(wrapper *jat.RequestWrapper)
 
 		wanted string // Note: query should be sorted by key
 	}{
 		"add query": {
 			initURI: "/api/ping",
-			f: func(wrapper *japitest.RequestWrapper) {
+			f: func(wrapper *jat.RequestWrapper) {
 				wrapper.AddQuery("type", "code")
 			},
 
@@ -251,7 +251,7 @@ func TestQuery(t *testing.T) {
 
 		"add query integer": {
 			initURI: "/api/ping",
-			f: func(wrapper *japitest.RequestWrapper) {
+			f: func(wrapper *jat.RequestWrapper) {
 				wrapper.AddQuery("num", 1)
 			},
 
@@ -260,7 +260,7 @@ func TestQuery(t *testing.T) {
 
 		"add two queries": {
 			initURI: "/api/ping",
-			f: func(wrapper *japitest.RequestWrapper) {
+			f: func(wrapper *jat.RequestWrapper) {
 				wrapper.
 					AddQuery("type", "code").
 					AddQuery("provider", "google")
@@ -271,7 +271,7 @@ func TestQuery(t *testing.T) {
 
 		"add query twice": {
 			initURI: "/api/ping",
-			f: func(wrapper *japitest.RequestWrapper) {
+			f: func(wrapper *jat.RequestWrapper) {
 				wrapper.
 					AddQuery("type", "code").
 					AddQuery("type", "token")
@@ -282,7 +282,7 @@ func TestQuery(t *testing.T) {
 
 		"set query": {
 			initURI: "/api/ping",
-			f: func(wrapper *japitest.RequestWrapper) {
+			f: func(wrapper *jat.RequestWrapper) {
 				wrapper.
 					AddQuery("type", "code").
 					AddQuery("provider", "google").
@@ -294,7 +294,7 @@ func TestQuery(t *testing.T) {
 
 		"query from string": {
 			initURI: "/api/ping",
-			f: func(wrapper *japitest.RequestWrapper) {
+			f: func(wrapper *jat.RequestWrapper) {
 				wrapper.WithQueryString("provider=google&type=money")
 			},
 
@@ -303,7 +303,7 @@ func TestQuery(t *testing.T) {
 
 		"query from map": {
 			initURI: "/api/ping",
-			f: func(wrapper *japitest.RequestWrapper) {
+			f: func(wrapper *jat.RequestWrapper) {
 				wrapper.WithQuery(map[string][]interface{}{
 					"provider": {"google"},
 					"int":      {1},
@@ -317,7 +317,7 @@ func TestQuery(t *testing.T) {
 
 		"query from url.Values": {
 			initURI: "localhost:3000/api/ping",
-			f: func(wrapper *japitest.RequestWrapper) {
+			f: func(wrapper *jat.RequestWrapper) {
 				wrapper.WithQueryValues(url.Values{
 					"provider": {"google"},
 					"type":     {"money"},
@@ -330,7 +330,7 @@ func TestQuery(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			wrapper := japitest.WrapGET(test.initURI)
+			wrapper := jat.WrapGET(test.initURI)
 			test.f(wrapper)
 
 			req := wrapper.Unwrap()
@@ -401,7 +401,7 @@ func TestParam(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			req := japitest.WrapGET(test.template).
+			req := jat.WrapGET(test.template).
 				WithParam(test.param).
 				Unwrap()
 
@@ -411,7 +411,7 @@ func TestParam(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			rw := japitest.WrapGET(test.template)
+			rw := jat.WrapGET(test.template)
 			for k, v := range test.param {
 				rw.SetParam(k, v)
 			}

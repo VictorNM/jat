@@ -1,4 +1,4 @@
-# GOLANG JSON API TEST
+# [J]SON [A]PI [T]EST
 
 This module contains some util functions for unit testing JSON API handler, see [Features](#features).
 
@@ -9,7 +9,7 @@ This module not guarantee for others API.
 
 ### Features
 
-- Features related to ***http.Request**:
+- Features related to **http.Request**:
     - NewRequest with JSON body
     - Add JSON Body
     - Add Path Params with URL template
@@ -17,7 +17,7 @@ This module not guarantee for others API.
     - Add Query
     - build *http.Request with fluent interface
 
-- Features related to *httptest.ResponseRecorder
+- Features related to **httptest.ResponseRecorder**
     - Assert status
     - Assert JSON body
 
